@@ -1,9 +1,9 @@
 #include <Arduino.h>
 
 /* Fill-in information from Blynk Device Info here */
-#define BLYNK_TEMPLATE_ID     "TMPL6M63d7ebv"
+#define BLYNK_TEMPLATE_ID     ""
 #define BLYNK_TEMPLATE_NAME   "Quickstart Template"
-#define BLYNK_AUTH_TOKEN      "lbboKQw8WDRF_3haP-9c0imMLVoWNyFf"
+#define BLYNK_AUTH_TOKEN      ""
 
 #define BLYNK_PRINT Serial
 
