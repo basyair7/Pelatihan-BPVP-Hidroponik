@@ -267,7 +267,7 @@ void screen_state_program(int screen_state, DateTime now) {
     lcd.print('/');
     lcd.print(now.year(), DEC);
 
-    lcd.setCursor(11, 0);
+    lcd.setCursor(0, 1);
     if (now.hour() < 10) lcd.print("0");
     lcd.print(now.hour(), DEC);
     lcd.print(':');
@@ -278,7 +278,7 @@ void screen_state_program(int screen_state, DateTime now) {
     lcd.print(now.second(), DEC);
   }
   else if (screen_state == 2) {
-    lcd.setCursor(0, 1);
+    lcd.setCursor(0, 0);
     lcd.print("   DHT Data   ");
     lcd.setCursor(0, 1);
     lcd.print("H : ");
@@ -295,6 +295,7 @@ void screen_state_program(int screen_state, DateTime now) {
     lcd.print("   DS Data   ");
     lcd.setCursor(0, 1);
     lcd.print("WT : ");
+    lcd.setCursor(0, 2);
     lcd.print(temperature, 0);
     lcd.print((char)223);
     lcd.print("C");
@@ -304,10 +305,14 @@ void screen_state_program(int screen_state, DateTime now) {
     lcd.print("   TDS Data   ");
     lcd.setCursor(0, 1);
     lcd.print("TDS Value : ");
+    lcd.setCursor(0, 2);
     lcd.print(tdsValue);
     lcd.print("ppm");
   }
   else {
+    lcd.setCursor(0, 1);
+    lcd.print("Run : ");
+    lcd.print(running ? "ON" : "OFF");
     lcd.setCursor(0, 1);
     lcd.print("Fase : "); 
     lcd.print(fase);
@@ -404,11 +409,7 @@ void run_tds_program() {
       Serial.print(" | PPM: "); Serial.print(ppm);
       Serial.print(" | Sensor: "); Serial.print(ppmReady);
       Serial.print(" | HST: "); Serial.print(hst);
-      Serial.print(" | Nyala? "); Serial.println(running); 
-      lcd.setCursor(0,2);
-      lcd.print("PPM: ");
-      lcd.print(ppm,0);
-      lcd.print(" ");
+      Serial.print(" | Running "); Serial.println(running ? "On" : "Off");
 
       ppmReady = true;
       lastPPMUpdate = millis();
