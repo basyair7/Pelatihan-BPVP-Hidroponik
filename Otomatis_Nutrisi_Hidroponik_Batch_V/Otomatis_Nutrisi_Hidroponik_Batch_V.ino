@@ -8,6 +8,7 @@
 #include <DallasTemperature.h>
 
 #include <EEPROM.h>
+#include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <RTClib.h>
 
@@ -123,10 +124,30 @@ void sendData_TDS() {
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
-  WiFi.mode(WIFI_STA);
+  
+  Wire.begin(22, 21);   // SDA = 22, SCL = 21 (DEFAULT ESP32)
+  Wire.setClock(100000); // 100kHz
+
+  /****** Deklarasi RTC ******/
+  if (!rtc.begin()) {
+    Serial.println();
+    Serial.println("Couldn't find RTC");
+    Serial.flush();
+    while(1) delay(10);
+  }
+
+  if (rtc.lostPower()) {
+    Serial.println("RTC lost power, let's set the time!");
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  }
+
+  delay(1000);
+
   lcd.init();
   lcd.backlight();
+  lcd.clear();
 
+  WiFi.mode(WIFI_STA);
   while (WiFi.status() != WL_CONNECTED) {
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -151,19 +172,6 @@ void setup() {
   lcd.print("   BPVP BANDA ACEH   ");
   delay(2000);
   lcd.clear();
-
-  /****** Deklarasi RTC ******/
-  if (!rtc.begin()) {
-    Serial.println("RTC Tidak terdeteksi!");
-    lcd.setCursor(0, 1);
-    lcd.print("RTC ERROR!");
-    while(1) delay(10);
-  }
-
-  if (rtc.lostPower()) {
-    Serial.println("RTC lost power, let's set the time!");
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-  }
 
   /****** Deklarasi DHT & sensor DS ******/
   dht.begin();
