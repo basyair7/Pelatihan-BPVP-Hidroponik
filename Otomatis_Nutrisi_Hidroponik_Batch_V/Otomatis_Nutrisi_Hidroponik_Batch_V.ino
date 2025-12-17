@@ -148,6 +148,7 @@ void setup() {
   lcd.clear();
 
   WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, pass);
   while (WiFi.status() != WL_CONNECTED) {
     lcd.clear();
     lcd.setCursor(0, 0);
