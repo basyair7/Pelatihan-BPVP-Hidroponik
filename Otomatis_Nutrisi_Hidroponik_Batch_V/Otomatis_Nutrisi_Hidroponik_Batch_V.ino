@@ -71,8 +71,8 @@ void kontrolPompa(float ppm, int hst);
 
 /***** Configurasi Blynk *****/
 // set password to "" for open networks
-char ssid[] = SSID_STA;
-char pass[] = PASS_STA;
+String ssid = String(SSID_STA);
+String pass = String(PASS_STA);
 
 BlynkTimer timer;
 
