@@ -125,9 +125,19 @@ void sendData_TDS() {
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
+
+  /****** Tombol Relay ******/
+  EEPROM.begin(32); // Inisialisasikan EEPROM dengan 32 byte
+
+  pinMode(startButton, INPUT_PULLUP); // Tombol start menggunakan internal pull-up
+  pinMode(resetButton, INPUT_PULLUP); // Tombol reset menggunakan internal pull-up
+  pinMode(RELAY1, OUTPUT); // Pin Relay A sebagai OUTPUT
+  pinMode(RELAY2, OUTPUT); // Pin Relay B sebagai OUTPUT
+  digitalWrite(RELAY1, HIGH); // Awal relay 1 mati
+  digitalWrite(RELAY2, HIGH); // Awal relay 2 mati
   
-  Wire.begin(22, 21);   // SDA = 22, SCL = 21 (DEFAULT ESP32)
-  Wire.setClock(100000); // 100kHz
+  // Wire.begin(22, 21);   // SDA = 22, SCL = 21 (DEFAULT ESP32)
+  // Wire.setClock(100000); // 100kHz
 
   /****** Deklarasi RTC ******/
   if (!rtc.begin()) {
@@ -181,16 +191,6 @@ void setup() {
 
   /****** Deklarasi TDS ******/
   pinMode(TdsSensorPin, INPUT);
-
-  /****** Tombol Relay ******/
-  EEPROM.begin(32); // Inisialisasikan EEPROM dengan 32 byte
-
-  pinMode(startButton, INPUT_PULLUP); // Tombol start menggunakan internal pull-up
-  pinMode(resetButton, INPUT_PULLUP); // Tombol reset menggunakan internal pull-up
-  pinMode(RELAY1, OUTPUT); // Pin Relay A sebagai OUTPUT
-  pinMode(RELAY2, OUTPUT); // Pin Relay B sebagai OUTPUT
-  digitalWrite(RELAY1, HIGH); // Awal relay 1 mati
-  digitalWrite(RELAY2, HIGH); // Awal relay 2 mati
 
   // Jika flag EEPROM bernilai 1 berarti ada data tanam
   if (EEPROM.read(0) == 1) {
