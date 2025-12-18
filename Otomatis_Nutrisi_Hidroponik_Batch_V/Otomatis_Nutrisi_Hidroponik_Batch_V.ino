@@ -68,6 +68,7 @@ void run_tds_program();
 void run_ds_program();
 void run_dht_program();
 void kontrolPompa(float ppm, int hst);
+void handleButtons(DateTime now);
 
 /***** Configurasi Blynk *****/
 // set password to "" for open networks
@@ -213,6 +214,8 @@ void loop() {
   static unsigned long lastTime_main;
   static int screen_state = 0;
   DateTime now = rtc.now();
+  bool startRead = digitalRead(startButton);
+  bool resetRead = digitalRead(resetButton);
 
   if (millis() - lastTime_main > 1000U) {
     lastTime_main = millis();
@@ -226,19 +229,13 @@ void loop() {
   run_ds_program();
   run_tds_program();
 
-  if (ppmReady && millis() - lastPPMUpdate >- 10000 && millis() - lastRelayTime >= 10000) {
+  if (ppmReady && millis() - lastPPMUpdate >= 10000 && millis() - lastRelayTime >= 10000) {
     kontrolPompa(ppm, hst);
     ppmReady = false; // reset supaya tidak berulang
     lastRelayTime = millis(); // catat waktu relay terakhir
   }
 
-  if (digitalRead(startButton) == LOW && !isPlanted) {
-    btn_control_start(now);
-  }
-
-  if (digitalRead(resetButton) == LOW) {
-    btn_control_reset();
-  }
+  handleButtons(now);
 
   if (isPlanted) {
     TimeSpan duration = now -startDate;
@@ -253,7 +250,53 @@ void loop() {
     hst = 0; // reset HST ketika belum tanam
   }
 
-  kontrolPompa(ppm, hst);
+  // kontrolPompa(ppm, hst);
+}
+
+void handleButtons(DateTime now) {
+  static bool startState = HIGH, lastStartState = HIGH;
+  static bool resetState = HIGH, lastResetState = HIGH;
+  
+  static unsigned long lastStartDebounce = 0;
+  static unsigned long lastResetDebounce = 0;
+  const unsigned long debounceDelay = 50;
+
+  bool startRead = digitalRead(startButton);
+  bool resetRead = digitalRead(resetButton);
+
+  // ===== START BUTTON =====
+  if (startRead != lastStartState) {
+    lastStartDebounce = millis();
+  }
+
+  if ((millis() - lastStartDebounce) > debounceDelay) {
+    if (startRead != startState) {
+      startState = startRead;
+
+      if (startState == LOW && !isPlanted) {
+        btn_control_start(now);
+        Serial.println(F("System Start!"));
+      }
+    }
+  }
+  lastStartState = startRead;
+
+  // ===== RESET BUTTON =====
+  if (resetRead != lastResetState) {
+    lastResetDebounce = millis();
+  }
+
+  if ((millis() - lastResetDebounce) > debounceDelay) {
+    if (resetRead != resetState) {
+      resetState = resetRead;
+
+      if (resetState == LOW) {
+        btn_control_reset();
+        Serial.println(F("System Reset"));
+      }
+    }
+  }
+  lastResetState = resetRead;
 }
 
 void screen_state_program(int screen_state, DateTime now) {
@@ -310,12 +353,14 @@ void screen_state_program(int screen_state, DateTime now) {
     lcd.print("ppm");
   }
   else {
-    lcd.setCursor(0, 1);
+    lcd.setCursor(0, 0);
     lcd.print("Run : ");
     lcd.print(running ? "ON" : "OFF");
+
     lcd.setCursor(0, 1);
     lcd.print("Fase : "); 
     lcd.print(fase);
+    
     lcd.setCursor(0, 2);
     lcd.print("HST : ");
     lcd.print(hst);
@@ -331,7 +376,7 @@ void btn_control_start(DateTime now) {
   EEPROM.write(4, startDate.day());
   EEPROM.commit();
   isPlanted = true;
-  delay(1000);
+  // delay(1000);
 }
 
 void btn_control_reset() {
@@ -340,7 +385,7 @@ void btn_control_reset() {
   isPlanted = false;
   digitalWrite(relayA, HIGH);
   digitalWrite(relayB, HIGH);
-  delay(1000);
+  // delay(1000);
   lcd.clear();
 }
 
