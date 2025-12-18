@@ -328,7 +328,7 @@ void screen_state_program(int screen_state, DateTime now) {
     lcd.print(daysOfTheWeek[now.dayOfTheWeek()]);
 
     lcd.setCursor(0, 3);
-    lcd.print("T   : ");
+    lcd.print("T    : ");
     lcd.print(rtc.getTemperature());
     lcd.print(" C");
   }
