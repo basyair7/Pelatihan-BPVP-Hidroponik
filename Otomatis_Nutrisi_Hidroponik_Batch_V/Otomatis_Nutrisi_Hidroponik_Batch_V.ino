@@ -145,9 +145,6 @@ void setup() {
   pinMode(RELAY2, OUTPUT); // Pin Relay B sebagai OUTPUT
   digitalWrite(RELAY1, HIGH); // Awal relay 1 mati
   digitalWrite(RELAY2, HIGH); // Awal relay 2 mati
-  
-  // Wire.begin(22, 21);   // SDA = 22, SCL = 21 (DEFAULT ESP32)
-  // Wire.setClock(100000); // 100kHz
 
   /****** Deklarasi RTC ******/
   if (!rtc.begin()) {
