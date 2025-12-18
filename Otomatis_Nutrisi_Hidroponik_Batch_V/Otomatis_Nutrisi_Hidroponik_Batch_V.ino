@@ -328,7 +328,7 @@ void screen_state_program(int screen_state, DateTime now) {
     lcd.print(daysOfTheWeek[now.dayOfTheWeek()]);
 
     lcd.setCursor(0, 3);
-    lcd.print("T : ");
+    lcd.print("T   : ");
     lcd.print(rtc.getTemperature());
     lcd.print(" C");
   }
@@ -395,7 +395,7 @@ void btn_control_reset() {
   for (int i = 0; i < EEPROM_SIZE; i++) {
     EEPROM.write(i, 0xFF);
   }
-  
+
   EEPROM.commit();
   isPlanted = false;
   digitalWrite(relayA, HIGH);
@@ -497,7 +497,7 @@ void run_dht_program() {
 
 void kontrolPompa(float ppm, int hst) {
   static unsigned long lastTime;
-  if (millis() - lastTime > 5000UL){
+  if (millis() - lastTime > 2000UL){
     lastTime = millis();
     // Logika fase & PPM
     running = false;
