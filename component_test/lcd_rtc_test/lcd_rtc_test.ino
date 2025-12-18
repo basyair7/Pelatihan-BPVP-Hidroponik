@@ -44,17 +44,17 @@ void loop() {
   // put your main code here, to run repeatedly:
   static unsigned long lastTime = 0;
 
-  if (millis() - lastTime > 3000U) {
+  if (millis() - lastTime > 500UL) {
     lastTime = millis();
 
     DateTime now = rtc.now();
 
     Serial.print(now.year(), DEC);
     Serial.print('/');
-    if (now.month() < 10) lcd.print("0");
+    if (now.month() < 10) Serial.print("0");
     Serial.print(now.month(), DEC);
     Serial.print('/');
-    if (now.day() < 10) lcd.print("0");
+    if (now.day() < 10) Serial.print("0");
     Serial.print(now.day(), DEC);
     Serial.print(F(" ("));
     Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
@@ -69,16 +69,17 @@ void loop() {
     lcd.print('/');
     if (now.day() < 10) lcd.print("0");
     lcd.print(now.day(), DEC);
+    
     lcd.setCursor(0, 1);
     lcd.print(daysOfTheWeek[now.dayOfTheWeek()]);
     
-    if (now.hour() < 10) lcd.print("0");
+    if (now.hour() < 10) Serial.print("0");
     Serial.print(now.hour(), DEC);
     Serial.print(':');
-    if (now.minute() < 10) lcd.print("0");
+    if (now.minute() < 10) Serial.print("0");
     Serial.print(now.minute(), DEC);
     Serial.print(':');
-    if (now.second() < 10) lcd.print("0");
+    if (now.second() < 10) Serial.print("0");
     Serial.print(now.second(), DEC);
     Serial.println();
 

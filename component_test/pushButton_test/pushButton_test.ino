@@ -1,5 +1,5 @@
-#define startButton 32
-#define resetButton 33
+#define startButton 18
+#define resetButton 19
 
 bool isPlanted = false;
 

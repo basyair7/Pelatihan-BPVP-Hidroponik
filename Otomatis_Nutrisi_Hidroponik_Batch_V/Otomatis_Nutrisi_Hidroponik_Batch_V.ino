@@ -124,8 +124,12 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
 
-  Wire.begin();
+  /****** Deklarasi DHT & sensor DS ******/
+  dht.begin();
+  DSsensor.begin();
+
   /****** Inisialisasikan LCD ******/
+  Wire.begin();
   lcd.begin();
   lcd.backlight();
   lcd.clear();
@@ -133,7 +137,7 @@ void setup() {
   delay(1000);
 
   /****** Tombol Relay ******/
-  EEPROM.begin(32); // Inisialisasikan EEPROM dengan 32 byte
+  EEPROM.begin(EEPROM_SIZE); // Inisialisasikan EEPROM
 
   pinMode(startButton, INPUT_PULLUP); // Tombol start menggunakan internal pull-up
   pinMode(resetButton, INPUT_PULLUP); // Tombol reset menggunakan internal pull-up
@@ -187,10 +191,6 @@ void setup() {
   delay(2000);
   lcd.clear();
 
-  /****** Deklarasi DHT & sensor DS ******/
-  dht.begin();
-  DSsensor.begin();
-
   /****** Deklarasi TDS ******/
   pinMode(TdsSensorPin, INPUT);
 
@@ -219,10 +219,10 @@ void loop() {
   bool startRead = digitalRead(startButton);
   bool resetRead = digitalRead(resetButton);
 
-  if (millis() - lastTime_main > 1000U) {
+  if (millis() - lastTime_main > 5000UL) {
     lastTime_main = millis();
     lcd.clear();
-    if (screen_state >= 6) screen_state = 0;
+    if (screen_state >= 5) screen_state = 0;
     screen_state++;
   }
   
@@ -252,7 +252,7 @@ void loop() {
     hst = 0; // reset HST ketika belum tanam
   }
 
-  // kontrolPompa(ppm, hst);
+  kontrolPompa(ppm, hst);
 }
 
 void handleButtons(DateTime now) {
@@ -304,6 +304,7 @@ void handleButtons(DateTime now) {
 void screen_state_program(int screen_state, DateTime now) {
   if (screen_state == 1) {
     lcd.setCursor(0, 0);
+    lcd.print("Date : ");
     if (now.day() < 10) lcd.print("0");
     lcd.print(now.day(), DEC);
     lcd.print('/');
@@ -313,6 +314,7 @@ void screen_state_program(int screen_state, DateTime now) {
     lcd.print(now.year(), DEC);
 
     lcd.setCursor(0, 1);
+    lcd.print("Time : ");
     if (now.hour() < 10) lcd.print("0");
     lcd.print(now.hour(), DEC);
     lcd.print(':');
@@ -321,9 +323,17 @@ void screen_state_program(int screen_state, DateTime now) {
     lcd.print(':');
     if (now.second() < 10) lcd.print("0");
     lcd.print(now.second(), DEC);
+
+    lcd.setCursor(7, 2);
+    lcd.print(daysOfTheWeek[now.dayOfTheWeek()]);
+
+    lcd.setCursor(0, 3);
+    lcd.print("T : ");
+    lcd.print(rtc.getTemperature());
+    lcd.print(" C");
   }
   else if (screen_state == 2) {
-    lcd.setCursor(0, 0);
+    lcd.setCursor(2, 0);
     lcd.print("   DHT Data   ");
     lcd.setCursor(0, 1);
     lcd.print("H : ");
@@ -336,35 +346,35 @@ void screen_state_program(int screen_state, DateTime now) {
     lcd.print("C");
   }
   else if (screen_state == 3) {
-    lcd.setCursor(0, 0);
+    lcd.setCursor(2, 0);
     lcd.print("   DS Data   ");
     lcd.setCursor(0, 1);
     lcd.print("WT : ");
-    lcd.setCursor(0, 2);
-    lcd.print(temperature, 0);
-    lcd.print((char)223);
-    lcd.print("C");
+    lcd.print(temperature);
+    lcd.print(" C");
   }
   else if (screen_state == 4) {
-    lcd.setCursor(0, 0);
+    lcd.setCursor(2, 0);
     lcd.print("   TDS Data   ");
     lcd.setCursor(0, 1);
     lcd.print("TDS Value : ");
     lcd.setCursor(0, 2);
     lcd.print(tdsValue);
-    lcd.print("ppm");
+    lcd.print(" ppm");
   }
   else {
-    lcd.setCursor(0, 0);
-    lcd.print("Run : ");
+    lcd.setCursor(3, 0);
+    lcd.print("Information");
+    lcd.setCursor(0, 1);
+    lcd.print("Run  : ");
     lcd.print(running ? "ON" : "OFF");
 
-    lcd.setCursor(0, 1);
+    lcd.setCursor(0, 2);
     lcd.print("Fase : "); 
     lcd.print(fase);
     
-    lcd.setCursor(0, 2);
-    lcd.print("HST : ");
+    lcd.setCursor(0, 3);
+    lcd.print("HST  : ");
     lcd.print(hst);
   }
 }
@@ -382,7 +392,10 @@ void btn_control_start(DateTime now) {
 }
 
 void btn_control_reset() {
-  EEPROM.write(0, 0);
+  for (int i = 0; i < EEPROM_SIZE; i++) {
+    EEPROM.write(i, 0xFF);
+  }
+  
   EEPROM.commit();
   isPlanted = false;
   digitalWrite(relayA, HIGH);
@@ -466,7 +479,7 @@ void run_tds_program() {
 
 void run_ds_program() {
   static unsigned long lastTime_sample_point = millis();
-  if (millis() - lastTime_sample_point > 1000U) {
+  if (millis() - lastTime_sample_point > 1000UL) {
     lastTime_sample_point = millis();
     DSsensor.setResolution(12);
     DSsensor.requestTemperatures();
@@ -483,38 +496,42 @@ void run_dht_program() {
 }
 
 void kontrolPompa(float ppm, int hst) {
-  // Logika fase & PPM
-  running = false;
-  if (hst >= 1 && hst <= 7 && ppm < 400) running = true;
-  else if (hst >= 8 && hst <= 14 && ppm <= 600) running = true; 
-  else if (hst >= 15 && hst <= 21 && ppm <= 800) running = true;
-  else if (hst >= 22 && hst <= 35 && ppm <= 1100) running = true;
-  else if (hst > 35 && ppm < 1200) running = true;
+  static unsigned long lastTime;
+  if (millis() - lastTime > 5000UL){
+    lastTime = millis();
+    // Logika fase & PPM
+    running = false;
+    if (hst >= 1 && hst <= 7 && ppm < 400) running = true;
+    else if (hst >= 8 && hst <= 14 && ppm <= 600) running = true; 
+    else if (hst >= 15 && hst <= 21 && ppm <= 800) running = true;
+    else if (hst >= 22 && hst <= 35 && ppm <= 1100) running = true;
+    else if (hst > 35 && ppm < 1200) running = true;
 
-  // siklus relay dengan millis (non-blocking)
-  if (running && relayState == 0) {
-    digitalWrite(relayA, LOW);
-    relayOnTime = millis();
-    relayState = 1;
-    Serial.println("Relay A ON");
-  }
+    // siklus relay dengan millis (non-blocking)
+    if (running && relayState == 0) {
+      digitalWrite(relayA, LOW);
+      relayOnTime = millis();
+      relayState = 1;
+      Serial.println("Relay A ON");
+    }
 
-  if (relayState == 1 && millis() - relayOnTime >= 500) {
-    digitalWrite(relayA, HIGH);
-    digitalWrite(relayB, LOW);
-    relayOnTime = millis();
-    relayState = 2;
-    Serial.println("Relay A OFF, Relay B ON");
-  }
+    if (relayState == 1 && millis() - relayOnTime >= 500) {
+      digitalWrite(relayA, HIGH);
+      digitalWrite(relayB, LOW);
+      relayOnTime = millis();
+      relayState = 2;
+      Serial.println("Relay A OFF, Relay B ON");
+    }
 
-  if (relayState == 2 && millis() - relayOnTime >= 500) {
-    digitalWrite(relayB, HIGH);
-    relayState = 0;
-    Serial.println("Relay B OFF, Selesai siklus");
-  }
+    if (relayState == 2 && millis() - relayOnTime >= 500) {
+      digitalWrite(relayB, HIGH);
+      relayState = 0;
+      Serial.println("Relay B OFF, Selesai siklus");
+    }
 
-  if (!running && relayState == 0) {
-    digitalWrite(relayA, HIGH);
-    digitalWrite(relayB, HIGH);
+    if (!running && relayState == 0) {
+      digitalWrite(relayA, HIGH);
+      digitalWrite(relayB, HIGH);
+    }
   }
 }
