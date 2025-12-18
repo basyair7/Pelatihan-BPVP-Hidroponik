@@ -330,7 +330,8 @@ void screen_state_program(int screen_state, DateTime now) {
     lcd.setCursor(0, 3);
     lcd.print("T    : ");
     lcd.print(rtc.getTemperature());
-    lcd.print(" C");
+    lcd.print((char)223);
+    lcd.print("C");
   }
   else if (screen_state == 2) {
     lcd.setCursor(2, 0);
@@ -351,7 +352,8 @@ void screen_state_program(int screen_state, DateTime now) {
     lcd.setCursor(0, 1);
     lcd.print("WT : ");
     lcd.print(temperature);
-    lcd.print(" C");
+    lcd.print((char)223);
+    lcd.print("C");
   }
   else if (screen_state == 4) {
     lcd.setCursor(2, 0);
@@ -367,7 +369,7 @@ void screen_state_program(int screen_state, DateTime now) {
     lcd.print("Information");
     lcd.setCursor(0, 1);
     lcd.print("Run  : ");
-    lcd.print(running ? "ON" : "OFF");
+    lcd.print(running ? "ON " : "OFF");
 
     lcd.setCursor(0, 2);
     lcd.print("Fase : "); 
