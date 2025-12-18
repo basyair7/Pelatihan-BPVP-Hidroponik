@@ -20,7 +20,7 @@
 /******* TDS SENSOR *******/
 #define TdsSensorPin    34    // Pin Input TDS Sensor
 #define VREF            3.3   // analog reference voltage of the ADC
-#define ADC_RESOLUTION  4096  // for ESP 4096, for arduino 1023
+#define ADC_RESOLUTION  4096  // for esp32 : 4096, for arduino/esp8266 : 1023
 #define SCOUNT          10    // sum of sample point
 
 /******* RELAY & PUSH BUTTON *******/

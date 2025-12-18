@@ -9,13 +9,11 @@
 
 #include <EEPROM.h>
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>
+#include <LCD_I2C.h>
 #include <RTClib.h>
 
 /******* LCD I2C Config *******/
-#define ROWS_LCD 20
-#define COLS_LCD 4
-LiquidCrystal_I2C lcd(0x27, ROWS_LCD, COLS_LCD);
+LCD_I2C lcd(0x27, 20, 4);
 
 /******* RTC I2C Config *******/
 RTC_DS3231  rtc;
@@ -32,7 +30,7 @@ const unsigned int interval_dht = 1000;
 /******* DS18B20 Object *******/
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature DSsensor(&oneWire);
-float Wtemp;
+// float Wtemp;
 
 /******* TDS Variable *******/
 int analogBuffer[SCOUNT];   // store the analog value in the array, read from ADC
@@ -126,6 +124,14 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
 
+  Wire.begin();
+  /****** Inisialisasikan LCD ******/
+  lcd.begin();
+  lcd.backlight();
+  lcd.clear();
+
+  delay(1000);
+
   /****** Tombol Relay ******/
   EEPROM.begin(32); // Inisialisasikan EEPROM dengan 32 byte
 
@@ -141,22 +147,18 @@ void setup() {
 
   /****** Deklarasi RTC ******/
   if (!rtc.begin()) {
-    Serial.println();
-    Serial.println("Couldn't find RTC");
-    Serial.flush();
-    while(1) delay(10);
+    Serial.println(F("Couldn't find RTC"));
+    lcd.setCursor(0, 0);
+    lcd.print("Couldn't find RTC");
+    while(1) delay(50);
   }
 
   if (rtc.lostPower()) {
-    Serial.println("RTC lost power, let's set the time!");
+    Serial.println(F("RTC lost power, let's set the time!"));
+    lcd.setCursor(0, 0);
+    lcd.print("RTC lost power, let's set the time!");
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
-
-  delay(1000);
-
-  lcd.init();
-  lcd.backlight();
-  lcd.clear();
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, pass);
