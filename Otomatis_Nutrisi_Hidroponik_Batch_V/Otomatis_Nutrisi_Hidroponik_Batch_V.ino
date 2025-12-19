@@ -70,8 +70,8 @@ void handleButtons(DateTime now);
 
 /***** Configurasi Blynk *****/
 // set password to "" for open networks
-String ssid = String(SSID_STA);
-String pass = String(PASS_STA);
+char ssid[] = SSID_STA;
+char pass[] = PASS_STA;
 
 BlynkTimer timer;
 
@@ -199,7 +199,8 @@ void setup() {
     startDate = DateTime(year, month, day, 0, 0, 0); // Simpan tanggal mulai
     isPlanted = true; // Tandai bahwa sudah ditanam
   }
-
+  
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
   timer.setInterval(5000L, sendData_T_DHT);
   timer.setInterval(5000L, sendData_H_DHT);
   timer.setInterval(5000L, sendData_DS);
@@ -250,6 +251,9 @@ void loop() {
   }
 
   kontrolPompa(ppm, hst);
+
+  Blynk.run();
+  timer.run();
 }
 
 void handleButtons(DateTime now) {
