@@ -78,6 +78,7 @@ BlynkTimer timer;
 BLYNK_WRITE(V0) {
   if (param.asInt() == 1) {
     btn_control_reset();
+    Blynk.virtualWrite(V0, 0);
   }
 }
 
@@ -85,6 +86,7 @@ BLYNK_WRITE(V1) {
   if (param.asInt() == 1) {
     DateTime now = rtc.now();
     btn_control_start(now);
+    Blynk.virtualWrite(V1, 0);
   }
 }
 
